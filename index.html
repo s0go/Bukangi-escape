@@ -169,7 +169,7 @@ function showMenu(reason = "") {
             <h1>BUKANGI ESCAPE</h1>
             <div class="sub-title">🦈 무한 북항 탈출 챌린지</div>
             <p>마우스로 부캉이를 조종해 최대한 멀리 탈출하세요!<br>
-            속도는 천천히 상승합니다. (목숨 단 1개)<br>
+            250m마다 속도가 0.1씩 상승합니다. (목숨 단 1개)<br>
             <b>1500m 지점</b>부터는 구경꾼들이 뛰어듭니다!</p>
             <button class="btn-start" onclick="startGame()">챌린지 시작</button>
             ${lbHtml}
@@ -250,7 +250,8 @@ function update() {
         return;
     }
 
-    currentSpeed = baseSpeed + (distance / 800);
+    // 250m마다 속도가 0.1씩 오르도록 공식 수정 (distance / 250 * 0.1)
+    currentSpeed = baseSpeed + (Math.floor(distance / 250) * 0.1);
     distance += (currentSpeed * 0.1);
 
     distVal.textContent = Math.floor(distance);
