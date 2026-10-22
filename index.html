@@ -12,71 +12,71 @@ body {
     user-select: none; overflow: hidden;
 }
 #gameBox {
-    position: relative; width: min(540px, 95vw); aspect-ratio: 9/16;
+    position: relative; width: min(1100px, 95vw); aspect-ratio: 16/9;
     overflow: hidden; border: 3px solid rgba(56, 189, 248, 0.4); border-radius: 20px; background: #0284c7;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); cursor: none;
 }
 canvas { width: 100%; height: 100%; display: block; }
 #hud {
-    position: absolute; top: 18px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center;
-    color: white; font-weight: 800; font-size: 16px; text-shadow: 0 2px 8px rgba(0,0,0,0.8); z-index: 5; pointer-events: none;
+    position: absolute; top: 18px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center;
+    color: white; font-weight: 800; font-size: 18px; text-shadow: 0 2px 8px rgba(0,0,0,0.8); z-index: 5; pointer-events: none;
 }
 .progress-container {
-    width: 180px; height: 14px; background: rgba(15, 23, 42, 0.7); border: 2px solid rgba(255,255,255,0.3);
+    width: 320px; height: 16px; background: rgba(15, 23, 42, 0.7); border: 2px solid rgba(255,255,255,0.3);
     border-radius: 10px; overflow: hidden; position: relative;
 }
 .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #4ade80); transition: width 0.1s linear; }
-.progress-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: 800; color: #fff; }
+.progress-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: 800; color: #fff; }
 #menu { 
     position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; 
-    backdrop-filter: blur(6px); background: rgba(3, 7, 18, 0.75); 
+    backdrop-filter: blur(6px); background: rgba(3, 7, 18, 0.8); 
 }
 .panel {
-    width: min(400px, 90%); padding: 28px; background: #0f172a;
+    width: min(480px, 90%); padding: 32px; background: #0f172a;
     border: 2px solid #38bdf8; border-radius: 24px; color: white; text-align: center;
     box-shadow: 0 15px 35px rgba(0,0,0,0.8); cursor: default;
 }
-.panel h1 { font-size: 32px; font-weight: 900; margin: 0 0 6px; color: #38bdf8; letter-spacing: -1px; }
+.panel h1 { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #38bdf8; letter-spacing: -1px; }
 .panel .sub-title { font-size: 14px; font-weight: 700; color: #facc15; margin-bottom: 16px; }
-.panel p { font-size: 13.5px; color: #cbd5e1; margin: 0 0 24px; line-height: 1.6; }
+.panel p { font-size: 14px; color: #cbd5e1; margin: 0 0 24px; line-height: 1.6; }
 .btn-start {
     width: 100%; border: none; padding: 14px; border-radius: 12px; background: #38bdf8; color: #0f172a;
     font-size: 18px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(56,189,248,0.4);
 }
 .btn-start:hover { background: #7dd3fc; transform: translateY(-2px); }
 
-/* 700m 알림 배너 */
+/* 이벤트 경고 배너 */
 #eventBanner {
-    position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-    background: rgba(239, 68, 68, 0.9); border: 2px solid #fde047; padding: 12px 24px; border-radius: 16px;
-    color: white; font-weight: 900; font-size: 18px; text-align: center; z-index: 8;
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); display: none; pointer-events: none;
-    animation: pulse 0.5s infinite alternate;
+    position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(239, 68, 68, 0.95); border: 2px solid #fde047; padding: 14px 28px; border-radius: 16px;
+    color: white; font-weight: 900; font-size: 20px; text-align: center; z-index: 8;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); display: none; pointer-events: none;
 }
-@keyframes pulse { from { transform: translate(-50%, -50%) scale(0.95); } to { transform: translate(-50%, -50%) scale(1.05); } }
 </style>
 </head>
 <body>
 
 <div id="gameBox">
-    <canvas id="game" width="540" height="960"></canvas>
+    <canvas id="game" width="1100" height="618"></canvas>
     
     <div id="hud">
-        <div>DIST: <span id="distVal" style="color:#facc15;">0</span>m</div>
+        <div>DIST: <span id="distVal" style="color:#facc15;">0</span>m / 2000m</div>
         <div class="progress-container">
             <div class="progress-bar" id="progressBar"></div>
-            <div class="progress-text">외해 탈출 (1000m)</div>
+            <div class="progress-text">북항 수로 탈출 대작전</div>
         </div>
-        <div>HP: <span id="hpVal" style="color:#4ade80;">100</span>%</div>
+        <div>LIVES: <span style="color:#f87171;">❤️ 1 / 1</span></div>
     </div>
 
-    <div id="eventBanner" id="bannerText">⚠️ "부캉아 가지마!"<br>사람들이 뛰어듭니다!</div>
+    <div id="eventBanner">⚠️ "부캉아 가지마!"<br>구경꾼들이 수로로 뛰어듭니다!</div>
 
     <div id="menu">
         <div class="panel" id="panelBox">
             <h1>BUKANGI ESCAPE</h1>
-            <div class="sub-title">🦈 부캉이의 북항 탈출 대작전</div>
-            <p>부산 북항 수로를 탈출하세요!<br>마우스로 위아래 유영하며 부서진 갑판, 부표, 구명튜브를 피하고<br><b>700m 지점</b>에서 뛰어드는 사람들을 조심하세요!</p>
+            <div class="sub-title">🦈 부캉이의 가로형 북항 탈출기</div>
+            <p>마우스로 부캉이를 조종해 넓은 외해로 탈출하세요!<br>
+            목숨은 단 1개! 나무 조각, 그물, 사람에게 닿으면 즉사합니다.<br>
+            <b>1400m 지점</b>부터는 구경꾼들이 뛰어드니 조심하세요!</p>
             <button class="btn-start" onclick="startGame()">탈출 시작하기</button>
         </div>
     </div>
@@ -86,20 +86,18 @@ canvas { width: 100%; height: 100%; display: block; }
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const distVal = document.getElementById("distVal");
-const hpVal = document.getElementById("hpVal");
 const progressBar = document.getElementById("progressBar");
 const menu = document.getElementById("menu");
 const panelBox = document.getElementById("panelBox");
 const eventBanner = document.getElementById("eventBanner");
 
-const GOAL_DIST = 1000;
+const GOAL_DIST = 2000; // 충분히 긴 주행 거리
 let state = "START";
 let distance = 0;
-let mousePos = { x: 270, y: 750 };
+let mousePos = { x: 200, y: 309 };
 
 let bukang = {
-    x: 270, y: 750, size: 24, hp: 100, angle: -Math.PI / 2,
-    invincibleUntil: 0
+    x: 200, y: 309, size: 26, angle: 0
 };
 
 let obstacles = [];
@@ -107,6 +105,7 @@ let fishes = [];
 let humans = [];
 let frame = 0;
 let eventTriggered = false;
+let deathReason = "";
 
 canvas.addEventListener("mousemove", e => {
     const rect = canvas.getBoundingClientRect();
@@ -116,21 +115,38 @@ canvas.addEventListener("mousemove", e => {
     mousePos.y = (e.clientY - rect.top) * scaleY;
 });
 
-function showMenu(isWin = false, isGameOver = false) {
+function showMenu(isWin = false, reason = "") {
     menu.style.display = "flex";
     eventBanner.style.display = "none";
     if(isWin) {
         panelBox.innerHTML = `
             <h1 style="color:#4ade80;">ESCAPE CLEAR!</h1>
-            <div class="sub-title" style="color:#4ade80;">🌊 탈출 성공! (약 25초 기록)</div>
-            <p>부캉이가 사람들 패닉을 뚫고 무사히 넓은 바다로 나갔습니다!</p>
-            <button class="btn-start" onclick="startGame()">다시 도전하기</button>
+            <div class="sub-title" style="color:#4ade80;">🌊 북항 탈출 대성공!</div>
+            <p>부캉이가 무사히 바다로 빠져나가 자유를 찾았습니다!</p>
+            <button class="btn-start" onclick="startGame()">다시 플레이하기</button>
         `;
-    } else if(isGameOver) {
+    } else {
+        let endingTitle = "BAD ENDING";
+        let endingDesc = "";
+        
+        if(reason === "WOOD") {
+            endingTitle = "BAD ENDING : 찔린 부캉이";
+            endingDesc = "표류하던 부서진 나무 갑판에 치명상을 입고 쓸쓸히 가라앉은 부캉이...";
+        } else if(reason === "NET") {
+            endingTitle = "BAD ENDING : 그물에 걸린 부캉이";
+            endingDesc = "불법 유도 그물에 옴짝달싹 못 하게 감겨 밀렵꾼에게 잡혀버린 부캉이...";
+        } else if(reason === "HUMAN") {
+            endingTitle = "BAD ENDING : 애완 부캉이";
+            endingDesc = "사람들에게 붙잡혀 졸지에 목줄이 채여 집에서 키워지게 된 부캉이...";
+        } else {
+            endingTitle = "BAD ENDING : 수로 충돌";
+            endingDesc = "수로 벽이나 장애물에 부딪혀 기력을 잃고 만 부캉이...";
+        }
+
         panelBox.innerHTML = `
-            <h1 style="color:#f87171;">GAME OVER</h1>
-            <div class="sub-title" style="color:#f87171;">💥 탈출 실패!</div>
-            <p>도착 거리: ${Math.floor(distance)}m</p>
+            <h1 style="color:#f87171;">${endingTitle}</h1>
+            <div class="sub-title" style="color:#f87171;">💥 목숨을 잃었습니다 (${Math.floor(distance)}m 도달)</div>
+            <p>${endingDesc}</p>
             <button class="btn-start" onclick="startGame()">재도전하기</button>
         `;
     }
@@ -139,9 +155,10 @@ function showMenu(isWin = false, isGameOver = false) {
 function startGame() {
     menu.style.display = "none";
     distance = 0;
-    bukang.x = 270; bukang.y = 750; bukang.hp = 100; bukang.angle = -Math.PI / 2;
+    bukang.x = 200; bukang.y = 309; bukang.angle = 0;
     obstacles = []; fishes = []; humans = []; frame = 0;
     eventTriggered = false;
+    deathReason = "";
     state = "PLAYING";
 }
 
@@ -149,229 +166,204 @@ function update() {
     if(state !== "PLAYING") return;
     frame++;
 
-    // 상어 유영 조작
+    // 마우스 추종 (가로 스크롤 방식: 우측으로 헤엄쳐 전진)
     let dx = mousePos.x - bukang.x;
     let dy = mousePos.y - bukang.y;
     let dist = Math.hypot(dx, dy);
 
-    if(dist > 4) {
-        bukang.x += dx * 0.1;
-        bukang.y += dy * 0.1;
+    if(dist > 3) {
+        bukang.x += dx * 0.09;
+        bukang.y += dy * 0.09;
         bukang.angle = Math.atan2(dy, dx);
     }
 
-    // 좌우 수로 벽 충돌 체크
-    const leftWall = 50, rightWall = 490;
-    if(bukang.x - bukang.size < leftWall || bukang.x + bukang.size > rightWall) {
-        bukang.hp -= 0.4;
+    // 상하 수로 벽면 충돌 체크 (목숨 1개이므로 즉사)
+    const topWall = 60, botWall = 558;
+    if(bukang.y - bukang.size < topWall || bukang.y + bukang.size > botWall) {
+        deathReason = "WALL";
+        state = "GAMEOVER";
+        showMenu(false, deathReason);
+        return;
     }
 
-    // 약 25초 만에 1000m 완주되도록 거리 증가속도 설정 (프레임당 약 0.67m, 60fps = 초당 40m -> 25초=1000m)
-    distance += 0.67;
+    // 거리 증가 (플레이 타임이 넉넉하게 느껴지도록 속도 조정)
+    distance += 0.85;
     distVal.textContent = Math.floor(distance);
-    hpVal.textContent = Math.max(0, Math.floor(bukang.hp));
     progressBar.style.width = Math.min(100, (distance / GOAL_DIST) * 100) + "%";
 
-    // 700m 이벤트 실행
-    if(distance >= 700 && !eventTriggered) {
+    // 1400m 지점 이벤트
+    if(distance >= 1400 && !eventTriggered) {
         eventTriggered = true;
         eventBanner.style.display = "block";
-        setTimeout(() => { eventBanner.style.display = "none"; }, 2500);
+        setTimeout(() => { eventBanner.style.display = "none"; }, 3000);
     }
 
-    // 장애물 생성 (위에서 아래로 내려옴)
-    if(frame % 35 === 0) {
-        let types = ["DECK", "TUBE", "BUOY", "NET"];
+    // 장애물 생성 (오른쪽에서 왼쪽으로 흘러옴)
+    if(frame % 50 === 0) {
+        let types = ["WOOD", "NET", "BUOY"];
         let type = types[Math.floor(Math.random() * types.length)];
-        let obsX = Math.random() * (rightWall - leftWall - 80) + leftWall + 40;
-        obstacles.push({ x: obsX, y: -60, type: type, size: type === "DECK" ? 40 : 25, rot: Math.random() * Math.PI });
+        let obsY = Math.random() * (botWall - topWall - 120) + topWall + 60;
+        obstacles.push({ x: 1150, y: obsY, type: type, size: type === "WOOD" ? 38 : 28, rot: Math.random() * Math.PI });
     }
 
-    // 700m 돌파 시 뛰어드는 사람들 난입!
-    if(distance >= 700 && frame % 25 === 0) {
-        let side = Math.random() < 0.5 ? "LEFT" : "RIGHT";
-        let spawnX = side === "LEFT" ? leftWall : rightWall;
-        let targetX = side === "LEFT" ? leftWall + Math.random() * 200 + 50 : rightWall - Math.random() * 200 - 50;
-        humans.push({ x: spawnX, y: -40, targetX: targetX, vx: (targetX - spawnX) * 0.03, size: 22 });
+    // 1400m 이후 사람들 난입 이벤트
+    if(distance >= 1400 && frame % 40 === 0) {
+        let spawnY = Math.random() < 0.5 ? topWall : botWall;
+        humans.push({ x: 1150, y: spawnY, targetY: spawnY === topWall ? topWall + 150 : botWall - 150, size: 22 });
     }
 
-    // 숭어 생성 (먹이)
-    if(frame % 75 === 0) {
-        let fishX = Math.random() * (rightWall - leftWall - 60) + leftWall + 30;
-        fishes.push({ x: fishX, y: -30, size: 12 });
+    // 숭어(체력 회복용이 아니라 점수/기분용)
+    if(frame % 90 === 0) {
+        let fishY = Math.random() * (botWall - topWall - 100) + topWall + 50;
+        fishes.push({ x: 1150, y: fishY, size: 14 });
     }
 
-    let now = Date.now();
-
-    // 장애물 이동 & 충돌
+    // 장애물 이동 및 충돌 체크 (목숨 1개 즉사)
     obstacles.forEach((obs) => {
-        obs.y += 6.5; // 아래로 스크롤
+        obs.x -= 5.0;
         let d = Math.hypot(bukang.x - obs.x, bukang.y - obs.y);
-        if(d < bukang.size + obs.size && now > bukang.invincibleUntil) {
-            bukang.hp -= 18;
-            bukang.invincibleUntil = now + 800;
+        if(d < bukang.size + obs.size) {
+            deathReason = obs.type; // "WOOD" 또는 "NET" 등
+            state = "GAMEOVER";
+            showMenu(false, deathReason);
         }
     });
 
-    // 뛰어든 사람 이동 & 충돌
+    // 사람 충돌 체크
     humans.forEach((h) => {
-        h.y += 5.5;
-        h.x += h.vx;
+        h.x -= 4.5;
         let d = Math.hypot(bukang.x - h.x, bukang.y - h.y);
-        if(d < bukang.size + h.size && now > bukang.invincibleUntil) {
-            bukang.hp -= 22; // 사람 부딪히면 데미지 큼
-            bukang.invincibleUntil = now + 800;
+        if(d < bukang.size + h.size) {
+            deathReason = "HUMAN";
+            state = "GAMEOVER";
+            showMenu(false, deathReason);
         }
     });
 
-    // 숭어 먹기
-    fishes.forEach((f, idx) => {
-        f.y += 5.0;
-        let d = Math.hypot(bukang.x - f.x, bukang.y - f.y);
-        if(d < bukang.size + f.size) {
-            bukang.hp = Math.min(100, bukang.hp + 12);
-            fishes.splice(idx, 1);
-        }
+    fishes.forEach((f) => {
+        f.x -= 4.0;
     });
 
-    // 필터링
-    obstacles = obstacles.filter(o => o.y < 1020);
-    humans = humans.filter(h => h.y < 1020);
-    fishes = fishes.filter(f => f.y < 1020);
+    obstacles = obstacles.filter(o => o.x > -100);
+    humans = humans.filter(h => h.x > -100);
+    fishes = fishes.filter(f => f.x > -100);
 
-    if(bukang.hp <= 0) {
-        state = "GAMEOVER";
-        showMenu(false, true);
-    } else if(distance >= GOAL_DIST) {
+    if(distance >= GOAL_DIST) {
         state = "WIN";
-        showMenu(true, false);
+        showMenu(true);
     }
 }
 
 function draw() {
-    ctx.clearRect(0, 0, 540, 960);
+    ctx.clearRect(0, 0, 1100, 618);
 
-    // 1. 수로 바다 물결 배경
-    let grad = ctx.createLinearGradient(0, 0, 0, 960);
+    // 가로형 바다 배경
+    let grad = ctx.createLinearGradient(0, 0, 0, 618);
     grad.addColorStop(0, "#0284c7");
     grad.addColorStop(1, "#0369a1");
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 540, 960);
+    ctx.fillRect(0, 0, 1100, 618);
 
-    // 좌우 수로 콘크리트 벽면
+    // 상하 수로 벽면
     ctx.fillStyle = "#334155";
-    ctx.fillRect(0, 0, 40, 960);
-    ctx.fillRect(500, 0, 40, 960);
+    ctx.fillRect(0, 0, 1100, 50);
+    ctx.fillRect(0, 568, 1100, 50);
 
     ctx.strokeStyle = "#facc15"; ctx.lineWidth = 4;
-    ctx.strokeRect(40, 0, 460, 960);
+    ctx.strokeRect(0, 50, 1100, 518);
 
-    // 2. 숭어(먹이)
+    // 숭어
     fishes.forEach(f => {
         ctx.fillStyle = "#e2e8f0";
         ctx.beginPath();
-        ctx.ellipse(f.x, f.y, f.size/2, f.size, 0, 0, Math.PI * 2);
+        ctx.ellipse(f.x, f.y, f.size, f.size/2, 0, 0, Math.PI * 2);
         ctx.fill();
     });
 
-    // 3. 리얼 그래픽 장애물 드로잉
+    // 장애물 그리기 (나무 조각, 그물, 부표)
     obstacles.forEach(obs => {
         ctx.save();
         ctx.translate(obs.x, obs.y);
         
-        if(obs.type === "DECK") {
-            // 부서진 나무 갑판 (나무 파편)
+        if(obs.type === "WOOD") {
+            // 부서진 나무 갑판 조각
             ctx.rotate(obs.rot);
-            ctx.fillStyle = "#854d0e";
+            ctx.fillStyle = "#78350f";
             ctx.fillRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
-            ctx.fillStyle = "#a16207";
+            ctx.fillStyle = "#92400e";
             ctx.fillRect(-obs.size+4, -obs.size/2+4, obs.size*1.5, obs.size-8);
             ctx.strokeStyle = "#451a03"; ctx.lineWidth = 2;
             ctx.strokeRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
-        } else if(obs.type === "TUBE") {
-            // 주황색 구명튜브
-            ctx.strokeStyle = "#ea580c"; ctx.lineWidth = 8;
-            ctx.beginPath(); ctx.arc(0, 0, obs.size, 0, Math.PI * 2); ctx.stroke();
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(0, 0, obs.size, 0, Math.PI * 2); ctx.stroke();
-        } else if(obs.type === "BUOY") {
-            // 빨간색 해상 부표
+        } else if(obs.type === "NET") {
+            // 그물 오브젝트
+            ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3;
+            ctx.strokeRect(-obs.size, -obs.size, obs.size*2, obs.size*2);
+            ctx.beginPath();
+            ctx.moveTo(-obs.size, -obs.size); ctx.lineTo(obs.size, obs.size);
+            ctx.moveTo(obs.size, -obs.size); ctx.lineTo(-obs.size, obs.size);
+            ctx.stroke();
+        } else {
+            // 부표
             ctx.fillStyle = "#dc2626";
             ctx.beginPath(); ctx.arc(0, 0, obs.size, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "#fef08a";
             ctx.beginPath(); ctx.arc(0, 0, obs.size/2, 0, Math.PI * 2); ctx.fill();
-        } else {
-            // 유도 그물 (네트 그리드)
-            ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3;
-            ctx.strokeRect(-obs.size, -10, obs.size*2, 20);
-            ctx.beginPath();
-            for(let i = -obs.size; i < obs.size; i += 8) {
-                ctx.moveTo(i, -10); ctx.lineTo(i, 10);
-            }
-            ctx.stroke();
         }
         ctx.restore();
     });
 
-    // 4. 뛰어드는 사람 캐릭터
+    // 뛰어드는 사람들
     humans.forEach(h => {
         ctx.save();
         ctx.translate(h.x, h.y);
-        // 수영 도넛/구명조끼 입은 사람
-        ctx.fillStyle = "#38bdf8"; // 바지/몸
+        ctx.fillStyle = "#38bdf8";
         ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#fde047"; // 노란 구명조끼
-        ctx.beginPath(); ctx.arc(0, -2, 10, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#fca5a5"; // 머리
-        ctx.beginPath(); ctx.arc(0, -6, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fde047"; // 구명조끼
+        ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fca5a5"; // 사람 얼굴
+        ctx.beginPath(); ctx.arc(0, -5, 6, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
     });
 
-    // 5. 상어 '부캉이' (세로 유영 렌더링)
-    let now = Date.now();
-    let isInvic = now < bukang.invincibleUntil;
-
+    // 상어 부캉이 렌더링
     ctx.save();
     ctx.translate(bukang.x, bukang.y);
     ctx.rotate(bukang.angle);
 
-    if(!isInvic || Math.floor(now / 100) % 2 === 0) {
-        // 부캉이 차콜 흑상어 바디
-        ctx.fillStyle = "#334155";
-        ctx.beginPath();
-        ctx.ellipse(0, 0, bukang.size + 12, bukang.size - 8, 0, 0, Math.PI * 2);
-        ctx.fill();
+    ctx.fillStyle = "#334155";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bukang.size + 12, bukang.size - 8, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-        // 지느러미
-        ctx.fillStyle = "#1e293b";
-        ctx.beginPath();
-        ctx.moveTo(-5, -bukang.size + 6);
-        ctx.lineTo(-20, -bukang.size - 10);
-        ctx.lineTo(8, -bukang.size + 6);
-        ctx.fill();
+    // 등지느러미
+    ctx.fillStyle = "#1e293b";
+    ctx.beginPath();
+    ctx.moveTo(-5, -bukang.size + 6);
+    ctx.lineTo(-18, -bukang.size - 10);
+    ctx.lineTo(8, -bukang.size + 6);
+    ctx.fill();
 
-        // 꼬리
-        ctx.beginPath();
-        ctx.moveTo(-bukang.size - 5, 0);
-        ctx.lineTo(-bukang.size - 22, -16);
-        ctx.lineTo(-bukang.size - 16, 0);
-        ctx.lineTo(-bukang.size - 22, 16);
-        ctx.fill();
+    // 꼬리
+    ctx.beginPath();
+    ctx.moveTo(-bukang.size - 5, 0);
+    ctx.lineTo(-bukang.size - 22, -16);
+    ctx.lineTo(-bukang.size - 16, 0);
+    ctx.lineTo(-bukang.size - 22, 16);
+    ctx.fill();
 
-        // 배
-        ctx.fillStyle = "#f8fafc";
-        ctx.beginPath();
-        ctx.ellipse(5, 4, bukang.size, bukang.size - 16, 0, 0, Math.PI);
-        ctx.fill();
+    // 배
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.ellipse(5, 4, bukang.size, bukang.size - 16, 0, 0, Math.PI);
+    ctx.fill();
 
-        // 눈
-        ctx.fillStyle = "#0f172a";
-        ctx.beginPath(); ctx.arc(18, -4, 3, 0, Math.PI * 2); ctx.fill();
-    }
+    // 눈
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath(); ctx.arc(18, -4, 3, 0, Math.PI * 2); ctx.fill();
 
     ctx.restore();
 
-    // 조작 커서 포인트
+    // 마우스 조준점
     ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 10, 0, Math.PI * 2); ctx.stroke();
 }
