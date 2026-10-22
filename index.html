@@ -45,7 +45,6 @@ canvas { width: 100%; height: 100%; display: block; }
 }
 .btn-start:hover { background: #7dd3fc; transform: translateY(-2px); }
 
-/* 이벤트 경고 배너 */
 #eventBanner {
     position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%);
     background: rgba(239, 68, 68, 0.95); border: 2px solid #fde047; padding: 14px 28px; border-radius: 16px;
@@ -63,7 +62,7 @@ canvas { width: 100%; height: 100%; display: block; }
         <div>DIST: <span id="distVal" style="color:#facc15;">0</span>m / 2000m</div>
         <div class="progress-container">
             <div class="progress-bar" id="progressBar"></div>
-            <div class="progress-text">북항 수로 탈출 대작전</div>
+            <div class="progress-text">세로형 수로 탈출 대작전</div>
         </div>
         <div>LIVES: <span style="color:#f87171;">❤️ 1 / 1</span></div>
     </div>
@@ -73,8 +72,8 @@ canvas { width: 100%; height: 100%; display: block; }
     <div id="menu">
         <div class="panel" id="panelBox">
             <h1>BUKANGI ESCAPE</h1>
-            <div class="sub-title">🦈 부캉이의 가로형 북항 탈출기</div>
-            <p>마우스로 부캉이를 조종해 넓은 외해로 탈출하세요!<br>
+            <div class="sub-title">🦈 가로 화면 속 세로형 북항 탈출기</div>
+            <p>마우스로 부캉이를 조종해 위에서 아래로 외해로 탈출하세요!<br>
             목숨은 단 1개! 나무 조각, 그물, 사람에게 닿으면 즉사합니다.<br>
             <b>1400m 지점</b>부터는 구경꾼들이 뛰어드니 조심하세요!</p>
             <button class="btn-start" onclick="startGame()">탈출 시작하기</button>
@@ -91,13 +90,13 @@ const menu = document.getElementById("menu");
 const panelBox = document.getElementById("panelBox");
 const eventBanner = document.getElementById("eventBanner");
 
-const GOAL_DIST = 2000; // 충분히 긴 주행 거리
+const GOAL_DIST = 2000;
 let state = "START";
 let distance = 0;
-let mousePos = { x: 200, y: 309 };
+let mousePos = { x: 550, y: 150 };
 
 let bukang = {
-    x: 200, y: 309, size: 26, angle: 0
+    x: 550, y: 150, size: 24, angle: Math.PI / 2
 };
 
 let obstacles = [];
@@ -106,6 +105,10 @@ let humans = [];
 let frame = 0;
 let eventTriggered = false;
 let deathReason = "";
+
+// 가로 화면 중앙에 세로형 수로 통로 배치 (X축 350 ~ 750)
+const laneLeft = 350;
+const laneRight = 750;
 
 canvas.addEventListener("mousemove", e => {
     const rect = canvas.getBoundingClientRect();
@@ -155,7 +158,7 @@ function showMenu(isWin = false, reason = "") {
 function startGame() {
     menu.style.display = "none";
     distance = 0;
-    bukang.x = 200; bukang.y = 309; bukang.angle = 0;
+    bukang.x = 550; bukang.y = 150; bukang.angle = Math.PI / 2;
     obstacles = []; fishes = []; humans = []; frame = 0;
     eventTriggered = false;
     deathReason = "";
@@ -166,7 +169,6 @@ function update() {
     if(state !== "PLAYING") return;
     frame++;
 
-    // 마우스 추종 (가로 스크롤 방식: 우측으로 헤엄쳐 전진)
     let dx = mousePos.x - bukang.x;
     let dy = mousePos.y - bukang.y;
     let dist = Math.hypot(dx, dy);
@@ -177,61 +179,58 @@ function update() {
         bukang.angle = Math.atan2(dy, dx);
     }
 
-    // 상하 수로 벽면 충돌 체크 (목숨 1개이므로 즉사)
-    const topWall = 60, botWall = 558;
-    if(bukang.y - bukang.size < topWall || bukang.y + bukang.size > botWall) {
+    // 좌우 수로 벽 충돌 체크 (목숨 1개 즉사)
+    if(bukang.x - bukang.size < laneLeft || bukang.x + bukang.size > laneRight) {
         deathReason = "WALL";
         state = "GAMEOVER";
         showMenu(false, deathReason);
         return;
     }
 
-    // 거리 증가 (플레이 타임이 넉넉하게 느껴지도록 속도 조정)
+    // 거리 증가 (위에서 아래로 전진)
     distance += 0.85;
     distVal.textContent = Math.floor(distance);
     progressBar.style.width = Math.min(100, (distance / GOAL_DIST) * 100) + "%";
 
-    // 1400m 지점 이벤트
     if(distance >= 1400 && !eventTriggered) {
         eventTriggered = true;
         eventBanner.style.display = "block";
         setTimeout(() => { eventBanner.style.display = "none"; }, 3000);
     }
 
-    // 장애물 생성 (오른쪽에서 왼쪽으로 흘러옴)
+    // 장애물 생성 (위에서 아래로 흘러내려옴)
     if(frame % 50 === 0) {
         let types = ["WOOD", "NET", "BUOY"];
         let type = types[Math.floor(Math.random() * types.length)];
-        let obsY = Math.random() * (botWall - topWall - 120) + topWall + 60;
-        obstacles.push({ x: 1150, y: obsY, type: type, size: type === "WOOD" ? 38 : 28, rot: Math.random() * Math.PI });
+        let obsX = Math.random() * (laneRight - laneLeft - 100) + laneLeft + 50;
+        obstacles.push({ x: obsX, y: -50, type: type, size: type === "WOOD" ? 38 : 28, rot: Math.random() * Math.PI });
     }
 
-    // 1400m 이후 사람들 난입 이벤트
+    // 1400m 이후 사람들 난입 이벤트 (좌우 벽에서 튀어나옴)
     if(distance >= 1400 && frame % 40 === 0) {
-        let spawnY = Math.random() < 0.5 ? topWall : botWall;
-        humans.push({ x: 1150, y: spawnY, targetY: spawnY === topWall ? topWall + 150 : botWall - 150, size: 22 });
+        let spawnX = Math.random() < 0.5 ? laneLeft : laneRight;
+        humans.push({ x: spawnX, y: Math.random() * 400 + 100, targetX: spawnX === laneLeft ? laneLeft + 120 : laneRight - 120, size: 22 });
     }
 
-    // 숭어(체력 회복용이 아니라 점수/기분용)
     if(frame % 90 === 0) {
-        let fishY = Math.random() * (botWall - topWall - 100) + topWall + 50;
-        fishes.push({ x: 1150, y: fishY, size: 14 });
+        let fishX = Math.random() * (laneRight - laneLeft - 80) + laneLeft + 40;
+        fishes.push({ x: fishX, y: -50, size: 14 });
     }
 
-    // 장애물 이동 및 충돌 체크 (목숨 1개 즉사)
+    // 장애물 이동 & 충돌 (아래로 이동)
     obstacles.forEach((obs) => {
-        obs.x -= 5.0;
+        obs.y += 5.0;
         let d = Math.hypot(bukang.x - obs.x, bukang.y - obs.y);
         if(d < bukang.size + obs.size) {
-            deathReason = obs.type; // "WOOD" 또는 "NET" 등
+            deathReason = obs.type;
             state = "GAMEOVER";
             showMenu(false, deathReason);
         }
     });
 
-    // 사람 충돌 체크
     humans.forEach((h) => {
-        h.x -= 4.5;
+        h.y += 4.5;
+        h.x += (h.targetX - h.x) * 0.05;
         let d = Math.hypot(bukang.x - h.x, bukang.y - h.y);
         if(d < bukang.size + h.size) {
             deathReason = "HUMAN";
@@ -241,12 +240,12 @@ function update() {
     });
 
     fishes.forEach((f) => {
-        f.x -= 4.0;
+        f.y += 4.0;
     });
 
-    obstacles = obstacles.filter(o => o.x > -100);
-    humans = humans.filter(h => h.x > -100);
-    fishes = fishes.filter(f => f.x > -100);
+    obstacles = obstacles.filter(o => o.y < 700);
+    humans = humans.filter(h => h.y < 700);
+    fishes = fishes.filter(f => f.y < 700);
 
     if(distance >= GOAL_DIST) {
         state = "WIN";
@@ -257,36 +256,42 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, 1100, 618);
 
-    // 가로형 바다 배경
+    // 전체 가로형 배경 (바다)
     let grad = ctx.createLinearGradient(0, 0, 0, 618);
-    grad.addColorStop(0, "#0284c7");
-    grad.addColorStop(1, "#0369a1");
+    grad.addColorStop(0, "#030712");
+    grad.addColorStop(1, "#0f172a");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 1100, 618);
 
-    // 상하 수로 벽면
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(0, 0, 1100, 50);
-    ctx.fillRect(0, 568, 1100, 50);
+    // 중앙 세로형 수로 배경 (파란 바다)
+    let laneGrad = ctx.createLinearGradient(laneLeft, 0, laneRight, 0);
+    laneGrad.addColorStop(0, "#0284c7");
+    laneGrad.addColorStop(0.5, "#0369a1");
+    laneGrad.addColorStop(1, "#0284c7");
+    ctx.fillStyle = laneGrad;
+    ctx.fillRect(laneLeft, 0, laneRight - laneLeft, 618);
 
+    // 세로형 수로 좌우 콘크리트 벽면 테두리
     ctx.strokeStyle = "#facc15"; ctx.lineWidth = 4;
-    ctx.strokeRect(0, 50, 1100, 518);
+    ctx.beginPath();
+    ctx.moveTo(laneLeft, 0); ctx.lineTo(laneLeft, 618);
+    ctx.moveTo(laneRight, 0); ctx.lineTo(laneRight, 618);
+    ctx.stroke();
 
     // 숭어
     fishes.forEach(f => {
         ctx.fillStyle = "#e2e8f0";
         ctx.beginPath();
-        ctx.ellipse(f.x, f.y, f.size, f.size/2, 0, 0, Math.PI * 2);
+        ctx.ellipse(f.x, f.y, f.size/2, f.size, 0, 0, Math.PI * 2);
         ctx.fill();
     });
 
-    // 장애물 그리기 (나무 조각, 그물, 부표)
+    // 장애물 그리기
     obstacles.forEach(obs => {
         ctx.save();
         ctx.translate(obs.x, obs.y);
         
         if(obs.type === "WOOD") {
-            // 부서진 나무 갑판 조각
             ctx.rotate(obs.rot);
             ctx.fillStyle = "#78350f";
             ctx.fillRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
@@ -295,7 +300,6 @@ function draw() {
             ctx.strokeStyle = "#451a03"; ctx.lineWidth = 2;
             ctx.strokeRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
         } else if(obs.type === "NET") {
-            // 그물 오브젝트
             ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3;
             ctx.strokeRect(-obs.size, -obs.size, obs.size*2, obs.size*2);
             ctx.beginPath();
@@ -303,7 +307,6 @@ function draw() {
             ctx.moveTo(obs.size, -obs.size); ctx.lineTo(-obs.size, obs.size);
             ctx.stroke();
         } else {
-            // 부표
             ctx.fillStyle = "#dc2626";
             ctx.beginPath(); ctx.arc(0, 0, obs.size, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "#fef08a";
@@ -318,14 +321,14 @@ function draw() {
         ctx.translate(h.x, h.y);
         ctx.fillStyle = "#38bdf8";
         ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#fde047"; // 구명조끼
+        ctx.fillStyle = "#fde047";
         ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#fca5a5"; // 사람 얼굴
+        ctx.fillStyle = "#fca5a5";
         ctx.beginPath(); ctx.arc(0, -5, 6, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
     });
 
-    // 상어 부캉이 렌더링
+    // 상어 부캉이 (세로 유영 방향)
     ctx.save();
     ctx.translate(bukang.x, bukang.y);
     ctx.rotate(bukang.angle);
@@ -335,7 +338,6 @@ function draw() {
     ctx.ellipse(0, 0, bukang.size + 12, bukang.size - 8, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 등지느러미
     ctx.fillStyle = "#1e293b";
     ctx.beginPath();
     ctx.moveTo(-5, -bukang.size + 6);
@@ -343,7 +345,6 @@ function draw() {
     ctx.lineTo(8, -bukang.size + 6);
     ctx.fill();
 
-    // 꼬리
     ctx.beginPath();
     ctx.moveTo(-bukang.size - 5, 0);
     ctx.lineTo(-bukang.size - 22, -16);
@@ -351,13 +352,11 @@ function draw() {
     ctx.lineTo(-bukang.size - 22, 16);
     ctx.fill();
 
-    // 배
     ctx.fillStyle = "#f8fafc";
     ctx.beginPath();
     ctx.ellipse(5, 4, bukang.size, bukang.size - 16, 0, 0, Math.PI);
     ctx.fill();
 
-    // 눈
     ctx.fillStyle = "#0f172a";
     ctx.beginPath(); ctx.arc(18, -4, 3, 0, Math.PI * 2); ctx.fill();
 
