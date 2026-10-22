@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bukangi Escape</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body {
+    margin: 0; min-height: 100vh; background: #030712;
+    display: flex; justify-content: center; align-items: center; font-family: 'Pretendard', sans-serif;
+    user-select: none; overflow: hidden;
+}
+#gameBox {
+    position: relative; width: min(1000px, 95vw); aspect-ratio: 16/9;
+    overflow: hidden; border: 3px solid rgba(56, 189, 248, 0.4); border-radius: 20px; background: #0284c7;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); cursor: none;
+}
+canvas { width: 100%; height: 100%; display: block; }
+#hud {
+    position: absolute; top: 18px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center;
+    color: white; font-weight: 800; font-size: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); z-index: 5; pointer-events: none;
+}
+.progress-container {
+    width: 320px; height: 16px; background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 10px; overflow: hidden; position: relative;
+}
+.progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #4ade80); transition: width 0.1s linear; }
+.progress-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: 800; color: #fff; }
+#menu { 
+    position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; 
+    backdrop-filter: blur(6px); background: rgba(3, 7, 18, 0.75); 
+}
+.panel {
+    width: min(440px, 90%); padding: 32px; background: #0f172a;
+    border: 2px solid #38bdf8; border-radius: 24px; color: white; text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8); cursor: default;
+}
+.panel h1 { font-size: 34px; font-weight: 900; margin: 0 0 6px; color: #38bdf8; letter-spacing: -1px; }
+.panel .sub-title { font-size: 14px; font-weight: 700; color: #facc15; margin-bottom: 16px; }
+.panel p { font-size: 14px; color: #cbd5e1; margin: 0 0 24px; line-height: 1.6; }
+.btn-start {
+    width: 100%; border: none; padding: 14px; border-radius: 12px; background: #38bdf8; color: #0f172a;
+    font-size: 18px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(56,189,248,0.4);
+}
+.btn-start:hover { background: #7dd3fc; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+
+<div id="gameBox">
+    <canvas id="game" width="1000" height="562"></canvas>
+    
+    <div id="hud">
+        <div>DISTANCE: <span id="distVal" style="color:#facc15;">0</span>m</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-text">북항 수로 ➔ 넓은 바다 (1000m)</div>
+        </div>
+        <div>STAMINA: <span id="hpVal" style="color:#4ade80;">100</span>%</div>
+    </div>
+
+    <div id="menu">
+        <div class="panel" id="panelBox">
+            <h1>BUKANGI ESCAPE</h1>
+            <div class="sub-title">🦈 부캉이의 북항 탈출 대작전</div>
+            <p>부산 북항 수로에 갇힌 상어 '부캉이'!<br>마우스로 조종하여 수로의 그물, 폰툰, 부표를 피하고<br>숭어를 먹어 체력을 회복하며 넓은 바다로 탈출하세요!</p>
+            <button class="btn-start" onclick="startGame()">탈출 시작하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const distVal = document.getElementById("distVal");
+const hpVal = document.getElementById("hpVal");
+const progressBar = document.getElementById("progressBar");
+const menu = document.getElementById("menu");
+const panelBox = document.getElementById("panelBox");
+
+const GOAL_DIST = 1000;
+let state = "START";
+let distance = 0;
+let mousePos = { x: 200, y: 281 };
+
+let bukang = {
+    x: 200, y: 281, size: 28, hp: 100, angle: 0,
+    invincibleUntil: 0
+};
+
+let obstacles = [];
+let fishes = [];
+let frame = 0;
+
+canvas.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    mousePos.x = (e.clientX - rect.left) * scaleX;
+    mousePos.y = (e.clientY - rect.top) * scaleY;
+});
+
+function showMenu(isWin = false, isGameOver = false) {
+    menu.style.display = "flex";
+    if(isWin) {
+        panelBox.innerHTML = `
+            <h1 style="color:#4ade80;">ESCAPE CLEAR!</h1>
+            <div class="sub-title" style="color:#4ade80;">🌊 탈출 성공!</div>
+            <p>부캉이가 무사히 넓은 바다로 나갔습니다!</p>
+            <button class="btn-start" onclick="startGame()">다시 도전하기</button>
+        `;
+    } else if(isGameOver) {
+        panelBox.innerHTML = `
+            <h1 style="color:#f87171;">GAME OVER</h1>
+            <div class="sub-title" style="color:#f87171;">💥 탈출 실패!</div>
+            <p>도착 거리: ${Math.floor(distance)}m</p>
+            <button class="btn-start" onclick="startGame()">재도전하기</button>
+        `;
+    }
+}
+
+function startGame() {
+    menu.style.display = "none";
+    distance = 0;
+    bukang.x = 200; bukang.y = 281; bukang.hp = 100; bukang.angle = 0;
+    obstacles = []; fishes = []; frame = 0;
+    state = "PLAYING";
+}
+
+function update() {
+    if(state !== "PLAYING") return;
+    frame++;
+
+    let dx = mousePos.x - bukang.x;
+    let dy = mousePos.y - bukang.y;
+    let dist = Math.hypot(dx, dy);
+
+    if(dist > 5) {
+        bukang.x += dx * 0.08;
+        bukang.y += dy * 0.08;
+        bukang.angle = Math.atan2(dy, dx);
+    }
+
+    const topWall = 60, botWall = 502;
+    if(bukang.y - bukang.size < topWall || bukang.y + bukang.size > botWall) {
+        bukang.hp -= 0.3;
+    }
+
+    distance += 0.8;
+    distVal.textContent = Math.floor(distance);
+    hpVal.textContent = Math.max(0, Math.floor(bukang.hp));
+    progressBar.style.width = Math.min(100, (distance / GOAL_DIST) * 100) + "%";
+
+    if(frame % 70 === 0) {
+        let types = ["NET", "PONTOON", "BUOY"];
+        let type = types[Math.floor(Math.random() * types.length)];
+        let obsY = Math.random() * (botWall - topWall - 100) + topWall + 50;
+        obstacles.push({ x: 1050, y: obsY, type: type, size: type === "PONTOON" ? 45 : 30 });
+    }
+
+    if(frame % 110 === 0) {
+        let fishY = Math.random() * (botWall - topWall - 80) + topWall + 40;
+        fishes.push({ x: 1050, y: fishY, size: 14 });
+    }
+
+    let now = Date.now();
+
+    obstacles.forEach((obs) => {
+        obs.x -= 4.5;
+        let d = Math.hypot(bukang.x - obs.x, bukang.y - obs.y);
+
+        if(d < bukang.size + obs.size && now > bukang.invincibleUntil) {
+            bukang.hp -= 20;
+            bukang.invincibleUntil = now + 1000;
+        }
+    });
+
+    fishes.forEach((f, idx) => {
+        f.x -= 3.5;
+        let d = Math.hypot(bukang.x - f.x, bukang.y - f.y);
+        if(d < bukang.size + f.size) {
+            bukang.hp = Math.min(100, bukang.hp + 15);
+            fishes.splice(idx, 1);
+        }
+    });
+
+    obstacles = obstacles.filter(o => o.x > -100);
+    fishes = fishes.filter(f => f.x > -50);
+
+    if(bukang.hp <= 0) {
+        state = "GAMEOVER";
+        showMenu(false, true);
+    } else if(distance >= GOAL_DIST) {
+        state = "WIN";
+        showMenu(true, false);
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, 1000, 562);
+
+    let grad = ctx.createLinearGradient(0, 0, 0, 562);
+    grad.addColorStop(0, "#0284c7");
+    grad.addColorStop(1, "#075985");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1000, 562);
+
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(0, 0, 1000, 50);
+    ctx.fillRect(0, 512, 1000, 50);
+
+    ctx.strokeStyle = "#facc15"; ctx.lineWidth = 3;
+    ctx.strokeRect(0, 50, 1000, 462);
+
+    fishes.forEach(f => {
+        ctx.fillStyle = "#cbd5e1";
+        ctx.beginPath();
+        ctx.ellipse(f.x, f.y, f.size, f.size/2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(f.x + f.size, f.y);
+        ctx.lineTo(f.x + f.size + 8, f.y - 5);
+        ctx.lineTo(f.x + f.size + 8, f.y + 5);
+        ctx.fill();
+    });
+
+    obstacles.forEach(obs => {
+        if(obs.type === "NET") {
+            ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(obs.x, obs.y, obs.size, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = "rgba(239, 68, 68, 0.3)"; ctx.fill();
+            ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px Pretendard"; ctx.textAlign = "center";
+            ctx.fillText("유도그물", obs.x, obs.y + 4);
+        } else if(obs.type === "PONTOON") {
+            ctx.fillStyle = "#f97316";
+            ctx.fillRect(obs.x - obs.size, obs.y - obs.size/2, obs.size*2, obs.size);
+            ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px Pretendard"; ctx.textAlign = "center";
+            ctx.fillText("폰툰차단막", obs.x, obs.y + 4);
+        } else {
+            ctx.fillStyle = "#facc15";
+            ctx.beginPath(); ctx.arc(obs.x, obs.y, obs.size, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#0f172a"; ctx.font = "bold 12px Pretendard"; ctx.textAlign = "center";
+            ctx.fillText("부표", obs.x, obs.y + 4);
+        }
+    });
+
+    let now = Date.now();
+    let isInvic = now < bukang.invincibleUntil;
+
+    ctx.save();
+    ctx.translate(bukang.x, bukang.y);
+    ctx.rotate(bukang.angle);
+
+    if(!isInvic || Math.floor(now / 100) % 2 === 0) {
+        ctx.fillStyle = "#334155";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, bukang.size + 10, bukang.size - 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#1e293b";
+        ctx.beginPath();
+        ctx.moveTo(-5, -bukang.size + 8);
+        ctx.lineTo(-18, -bukang.size - 10);
+        ctx.lineTo(8, -bukang.size + 8);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-bukang.size - 5, 0);
+        ctx.lineTo(-bukang.size - 22, -16);
+        ctx.lineTo(-bukang.size - 16, 0);
+        ctx.lineTo(-bukang.size - 22, 16);
+        ctx.fill();
+
+        ctx.fillStyle = "#f8fafc";
+        ctx.beginPath();
+        ctx.ellipse(5, 5, bukang.size - 2, bukang.size - 16, 0, 0, Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = "#0f172a";
+        ctx.beginPath(); ctx.arc(18, -5, 3, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.restore();
+
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.6)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 12, 0, Math.PI * 2); ctx.stroke();
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
