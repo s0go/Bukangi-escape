@@ -8,7 +8,437 @@
 <style>
 body {
     margin: 0; min-height: 100vh; background: #030712;
+    display: flex; justify-content: center; align-items: center; font-family: 'Pretendard', sans-serif;<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bukangi Escape</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body {
+    margin: 0; min-height: 100vh; background: #030712;
     display: flex; justify-content: center; align-items: center; font-family: 'Pretendard', sans-serif;
+    user-select: none; overflow: hidden;
+}
+#gameBox {
+    position: relative; width: min(1200px, 96vw); aspect-ratio: 16/9;
+    overflow: hidden; border: 3px solid rgba(56, 189, 248, 0.4); border-radius: 20px; background: #0f172a;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); cursor: none;
+}
+canvas { width: 100%; height: 100%; display: block; }
+#hud {
+    position: absolute; top: 18px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center;
+    color: white; font-weight: 800; font-size: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.8); z-index: 5; pointer-events: none;
+}
+#menu { 
+    position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; 
+    backdrop-filter: blur(6px); background: rgba(3, 7, 18, 0.82); 
+}
+.panel {
+    width: min(480px, 90%); padding: 24px; background: #0f172a;
+    border: 2px solid #38bdf8; border-radius: 24px; color: white; text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8); cursor: default; max-height: 92vh; overflow-y: auto;
+}
+.panel h1 { font-size: 28px; font-weight: 900; margin: 0 0 4px; color: #38bdf8; letter-spacing: -1px; }
+.panel .sub-title { font-size: 13.5px; font-weight: 700; color: #facc15; margin-bottom: 10px; }
+.panel p { font-size: 13px; color: #cbd5e1; margin: 0 0 14px; line-height: 1.4; }
+.btn-start {
+    width: 100%; border: none; padding: 12px; border-radius: 12px; background: #38bdf8; color: #0f172a;
+    font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(56,189,248,0.4);
+    margin-top: 8px;
+}
+.btn-start:hover { background: #7dd3fc; transform: translateY(-2px); }
+
+input {
+    width: 100%; padding: 10px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px; font-size: 14px; outline: none; background: rgba(0,0,0,0.4); color: white;
+    box-sizing: border-box; text-align: center; font-weight: 700;
+}
+input:focus { border-color: #38bdf8; }
+
+.ending-art {
+    width: 100%; height: 110px; background: #020617; border-radius: 12px; margin-bottom: 12px;
+    display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.leaderboard { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left; font-size: 12.5px; }
+.leaderboard b { display: block; text-align: center; margin-bottom: 6px; color: #facc15; font-size: 13.5px; }
+.rank { display: flex; justify-content: space-between; padding: 5px 8px; margin-bottom: 3px; background: rgba(255,255,255,0.05); border-radius: 6px; }
+.rankScore { color: #38bdf8; font-weight: 700; }
+
+#eventBanner {
+    position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(239, 68, 68, 0.95); border: 2px solid #fde047; padding: 14px 28px; border-radius: 16px;
+    color: white; font-weight: 900; font-size: 20px; text-align: center; z-index: 8;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); display: none; pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div id="gameBox">
+    <canvas id="game" width="1200" height="675"></canvas>
+    
+    <div id="hud">
+        <div>RECORD: <span id="distVal" style="color:#facc15;">0</span>m</div>
+        <div>SPEED: <span id="speedVal" style="color:#38bdf8;">1.0</span>x</div>
+        <div>LIVES: <span style="color:#f87171;">❤️ 1 / 1</span></div>
+    </div>
+
+    <div id="eventBanner">⚠️ "부캉아 가지마!"<br>1500m 돌파! 구경꾼들이 뛰어듭니다!</div>
+
+    <div id="menu">
+        <div class="panel" id="panelBox"></div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const distVal = document.getElementById("distVal");
+const speedVal = document.getElementById("speedVal");
+const menu = document.getElementById("menu");
+const panelBox = document.getElementById("panelBox");
+const eventBanner = document.getElementById("eventBanner");
+
+let state = "START";
+let distance = 0;
+let baseSpeed = 4.5; // 기본 속도 조정
+let currentSpeed = 4.5;
+let mousePos = { x: 600, y: 150 };
+
+let bukang = {
+    x: 600, y: 150, size: 26, angle: Math.PI / 2
+};
+
+let obstacles = [];
+let fishes = [];
+let humans = [];
+let frame = 0;
+let eventTriggered = false;
+let deathReason = "";
+
+const laneLeft = 150;
+const laneRight = 1050;
+
+canvas.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    mousePos.x = (e.clientX - rect.left) * scaleX;
+    mousePos.y = (e.clientY - rect.top) * scaleY;
+});
+
+function getLB() {
+    try { return JSON.parse(localStorage.getItem("bukangiLeaderboard")) || []; } catch(e) { return []; }
+}
+function saveLB(lb) {
+    localStorage.setItem("bukangiLeaderboard", JSON.stringify(lb));
+}
+
+// 배드 엔딩 일러스트 생성용 SVG/HTML 아이콘 리턴 함수
+function getEndingArtHtml(reason) {
+    if(reason === "WOOD") {
+        return `<div style="text-align:center; color:#f87171;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M2 12h20M15 5l7 7-7 7"/></svg>
+            <div style="font-size:12px; font-weight:800; margin-top:4px;">나무 조각에 찔린 부캉이</div>
+        </div>`;
+    } else if(reason === "NET") {
+        return `<div style="text-align:center; color:#f87171;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+            <div style="font-size:12px; font-weight:800; margin-top:4px;">그물에 포획된 부캉이</div>
+        </div>`;
+    } else if(reason === "HUMAN") {
+        return `<div style="text-align:center; color:#f87171;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"/></svg>
+            <div style="font-size:12px; font-weight:800; margin-top:4px;">목줄이 채인 애완 부캉이</div>
+        </div>`;
+    } else {
+        return `<div style="text-align:center; color:#f87171;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div style="font-size:12px; font-weight:800; margin-top:4px;">수로 벽 충돌</div>
+        </div>`;
+    }
+}
+
+function showMenu(reason = "") {
+    menu.style.display = "flex";
+    eventBanner.style.display = "none";
+    
+    let lb = getLB();
+    let lbHtml = `<div class="leaderboard"><b>🏆 TOP RANKINGS</b>`;
+    if(lb.length === 0) lbHtml += `<p style="text-align:center; color:#64748b; margin:4px 0;">기록이 없습니다</p>`;
+    else lb.slice(0, 5).forEach((item, i) => {
+        lbHtml += `<div class="rank"><span>${i+1}. ${item.name}</span><span class="rankScore">${item.score}m</span></div>`;
+    });
+    lbHtml += `</div>`;
+
+    if(state === "START") {
+        panelBox.innerHTML = `
+            <h1>BUKANGI ESCAPE</h1>
+            <div class="sub-title">🦈 무한 북항 탈출 챌린지</div>
+            <p>마우스로 부캉이를 조종해 최대한 멀리 탈출하세요!<br>
+            속도는 천천히 상승합니다. (목숨 단 1개)<br>
+            <b>1500m 지점</b>부터는 구경꾼들이 뛰어듭니다!</p>
+            <button class="btn-start" onclick="startGame()">챌린지 시작</button>
+            ${lbHtml}
+        `;
+    } else {
+        let endingTitle = "BAD ENDING";
+        let endingDesc = "";
+        
+        if(reason === "WOOD") {
+            endingTitle = "BAD ENDING : 찔린 부캉이";
+            endingDesc = "부서진 나무 갑판에 치명상을 입고 쓸쓸히 가라앉은 부캉이...";
+        } else if(reason === "NET") {
+            endingTitle = "BAD ENDING : 그물에 걸린 부캉이";
+            endingDesc = "유도 그물에 감겨 밀렵꾼에게 잡혀버린 부캉이...";
+        } else if(reason === "HUMAN") {
+            endingTitle = "BAD ENDING : 애완 부캉이";
+            endingDesc = "사람들에게 붙잡혀 졸지에 목줄이 채여 키워지게 된 부캉이...";
+        } else {
+            endingTitle = "BAD ENDING : 수로 충돌";
+            endingDesc = "수로 벽이나 부표에 강력하게 충돌한 부캉이...";
+        }
+
+        let finalDist = Math.floor(distance);
+
+        panelBox.innerHTML = `
+            <h1 style="color:#f87171;">${endingTitle}</h1>
+            <div class="sub-title" style="color:#f87171;">💥 최종 완주 거리 : ${finalDist}m</div>
+            <div class="ending-art">${getEndingArtHtml(reason)}</div>
+            <p>${endingDesc}</p>
+            <input id="pName" placeholder="이름 입력 (최대 10자)" maxlength="10">
+            <button class="btn-start" onclick="submitScore(${finalDist})">기록 등록하기</button>
+            ${lbHtml}
+        `;
+        setTimeout(() => document.getElementById("pName")?.focus(), 50);
+    }
+}
+
+function submitScore(s) {
+    let input = document.getElementById("pName");
+    let name = input ? input.value.trim() || "익명" : "익명";
+    let lb = getLB();
+    lb.push({ name, score: s });
+    lb.sort((a,b) => b.score - a.score);
+    saveLB(lb);
+    state = "START";
+    showMenu();
+}
+
+function startGame() {
+    menu.style.display = "none";
+    distance = 0;
+    currentSpeed = baseSpeed;
+    bukang.x = 600; bukang.y = 150; bukang.angle = Math.PI / 2;
+    obstacles = []; fishes = []; humans = []; frame = 0;
+    eventTriggered = false;
+    deathReason = "";
+    state = "PLAYING";
+}
+
+function update() {
+    if(state !== "PLAYING") return;
+    frame++;
+
+    let dx = mousePos.x - bukang.x;
+    let dy = mousePos.y - bukang.y;
+    let dist = Math.hypot(dx, dy);
+
+    if(dist > 3) {
+        bukang.x += dx * 0.1;
+        bukang.y += dy * 0.1;
+        bukang.angle = Math.atan2(dy, dx);
+    }
+
+    if(bukang.x - bukang.size < laneLeft || bukang.x + bukang.size > laneRight) {
+        deathReason = "WALL";
+        state = "GAMEOVER";
+        showMenu(deathReason);
+        return;
+    }
+
+    // 속도 상승을 훨씬 완만하게 조정 (800m마다 1.0x 씩 증가)
+    currentSpeed = baseSpeed + (distance / 800);
+    distance += (currentSpeed * 0.1);
+
+    distVal.textContent = Math.floor(distance);
+    speedVal.textContent = (currentSpeed / baseSpeed).toFixed(1);
+
+    if(distance >= 1500 && !eventTriggered) {
+        eventTriggered = true;
+        eventBanner.style.display = "block";
+        setTimeout(() => { eventBanner.style.display = "none"; }, 3000);
+    }
+
+    let spawnRate = Math.max(25, Math.floor(55 - (currentSpeed * 1.5)));
+    if(frame % spawnRate === 0) {
+        let types = ["WOOD", "NET", "BUOY"];
+        let type = types[Math.floor(Math.random() * types.length)];
+        let obsX = Math.random() * (laneRight - laneLeft - 120) + laneLeft + 60;
+        obstacles.push({ x: obsX, y: -60, type: type, size: type === "WOOD" ? 42 : 30, rot: Math.random() * Math.PI });
+    }
+
+    if(distance >= 1500 && frame % 35 === 0) {
+        let spawnX = Math.random() < 0.5 ? laneLeft : laneRight;
+        humans.push({ x: spawnX, y: Math.random() * 450 + 100, targetX: spawnX === laneLeft ? laneLeft + 250 : laneRight - 250, size: 24 });
+    }
+
+    if(frame % 90 === 0) {
+        let fishX = Math.random() * (laneRight - laneLeft - 100) + laneLeft + 50;
+        fishes.push({ x: fishX, y: -50, size: 14 });
+    }
+
+    obstacles.forEach((obs) => {
+        obs.y += currentSpeed;
+        let d = Math.hypot(bukang.x - obs.x, bukang.y - obs.y);
+        if(d < bukang.size + obs.size) {
+            deathReason = obs.type;
+            state = "GAMEOVER";
+            showMenu(deathReason);
+        }
+    });
+
+    humans.forEach((h) => {
+        h.y += currentSpeed * 0.9;
+        h.x += (h.targetX - h.x) * 0.05;
+        let d = Math.hypot(bukang.x - h.x, bukang.y - h.y);
+        if(d < bukang.size + h.size) {
+            deathReason = "HUMAN";
+            state = "GAMEOVER";
+            showMenu(deathReason);
+        }
+    });
+
+    fishes.forEach((f) => {
+        f.y += currentSpeed * 0.8;
+    });
+
+    obstacles = obstacles.filter(o => o.y < 750);
+    humans = humans.filter(h => h.y < 750);
+    fishes = fishes.filter(f => f.y < 750);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, 1200, 675);
+
+    let grad = ctx.createLinearGradient(0, 0, 0, 675);
+    grad.addColorStop(0, "#030712");
+    grad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1200, 675);
+
+    let laneGrad = ctx.createLinearGradient(laneLeft, 0, laneRight, 0);
+    laneGrad.addColorStop(0, "#0284c7");
+    laneGrad.addColorStop(0.5, "#0369a1");
+    laneGrad.addColorStop(1, "#0284c7");
+    ctx.fillStyle = laneGrad;
+    ctx.fillRect(laneLeft, 0, laneRight - laneLeft, 675);
+
+    ctx.strokeStyle = "#facc15"; ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(laneLeft, 0); ctx.lineTo(laneLeft, 675);
+    ctx.moveTo(laneRight, 0); ctx.lineTo(laneRight, 675);
+    ctx.stroke();
+
+    fishes.forEach(f => {
+        ctx.fillStyle = "#e2e8f0";
+        ctx.beginPath();
+        ctx.ellipse(f.x, f.y, f.size/2, f.size, 0, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    obstacles.forEach(obs => {
+        ctx.save();
+        ctx.translate(obs.x, obs.y);
+        
+        if(obs.type === "WOOD") {
+            ctx.rotate(obs.rot);
+            ctx.fillStyle = "#78350f";
+            ctx.fillRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
+            ctx.fillStyle = "#92400e";
+            ctx.fillRect(-obs.size+4, -obs.size/2+4, obs.size*1.5, obs.size-8);
+            ctx.strokeStyle = "#451a03"; ctx.lineWidth = 2;
+            ctx.strokeRect(-obs.size, -obs.size/2, obs.size*2, obs.size);
+        } else if(obs.type === "NET") {
+            ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3;
+            ctx.strokeRect(-obs.size, -obs.size, obs.size*2, obs.size*2);
+            ctx.beginPath();
+            ctx.moveTo(-obs.size, -obs.size); ctx.lineTo(obs.size, obs.size);
+            ctx.moveTo(obs.size, -obs.size); ctx.lineTo(-obs.size, obs.size);
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = "#dc2626";
+            ctx.beginPath(); ctx.arc(0, 0, obs.size, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#fef08a";
+            ctx.beginPath(); ctx.arc(0, 0, obs.size/2, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+    });
+
+    humans.forEach(h => {
+        ctx.save();
+        ctx.translate(h.x, h.y);
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fde047";
+        ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fca5a5";
+        ctx.beginPath(); ctx.arc(0, -5, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    });
+
+    ctx.save();
+    ctx.translate(bukang.x, bukang.y);
+    ctx.rotate(bukang.angle);
+
+    ctx.fillStyle = "#334155";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bukang.size + 12, bukang.size - 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#1e293b";
+    ctx.beginPath();
+    ctx.moveTo(-5, -bukang.size + 6);
+    ctx.lineTo(-18, -bukang.size - 10);
+    ctx.lineTo(8, -bukang.size + 6);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-bukang.size - 5, 0);
+    ctx.lineTo(-bukang.size - 22, -16);
+    ctx.lineTo(-bukang.size - 16, 0);
+    ctx.lineTo(-bukang.size - 22, 16);
+    ctx.fill();
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.ellipse(5, 4, bukang.size, bukang.size - 16, 0, 0, Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath(); ctx.arc(18, -4, 3, 0, Math.PI * 2); ctx.fill();
+
+    ctx.restore();
+
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 10, 0, Math.PI * 2); ctx.stroke();
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+showMenu();
+loop();
+</script>
+</body>
+</html>
     user-select: none; overflow: hidden;
 }
 #gameBox {
