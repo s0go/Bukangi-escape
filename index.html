@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bukangi Escape</title>
+<title>Bukangi & Fubao Escape</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 body {
@@ -72,12 +72,12 @@ input:focus { border-color: #38bdf8; }
     <canvas id="game" width="1200" height="675"></canvas>
     
     <div id="hud">
-        <div>RECORD: <span id="distVal" style="color:#facc15;">0</span>m</div>
+        <div>탐색 거리: <span id="distVal" style="color:#facc15;">0</span>m</div>
         <div>SPEED: <span id="speedVal" style="color:#38bdf8;">1.0</span>x</div>
         <div>LIVES: <span style="color:#f87171;">❤️ 1 / 1</span></div>
     </div>
 
-    <div id="eventBanner">⚠️ "부캉아 가지마!"<br>1500m 돌파! 구경꾼들이 뛰어듭니다!</div>
+    <div id="eventBanner">⚠️ "부캉아! 늑구 본 적 있니?"<br>1500m 돌파! 구경꾼들이 뛰어듭니다!</div>
 
     <div id="menu">
         <div class="panel" id="panelBox"></div>
@@ -99,7 +99,7 @@ let baseSpeed = 4.0;
 let currentSpeed = 4.0;
 let mousePos = { x: 600, y: 150 };
 
-let bukang = {
+let rider = {
     x: 600, y: 150, size: 26, angle: Math.PI / 2
 };
 
@@ -132,17 +132,17 @@ function getEndingArtHtml(reason) {
     if(reason === "WOOD") {
         return `<div style="text-align:center; color:#f87171;">
             <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M2 12h20M15 5l7 7-7 7"/></svg>
-            <div style="font-size:12px; font-weight:800; margin-top:2px;">나무 조각에 찔린 부캉이</div>
+            <div style="font-size:12px; font-weight:800; margin-top:2px;">나무 조각에 충돌한 푸바오와 부캉이</div>
         </div>`;
     } else if(reason === "NET") {
         return `<div style="text-align:center; color:#f87171;">
             <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-            <div style="font-size:12px; font-weight:800; margin-top:2px;">그물에 포획된 부캉이</div>
+            <div style="font-size:12px; font-weight:800; margin-top:2px;">그물에 걸려 늑구를 못 찾은 푸바오</div>
         </div>`;
     } else if(reason === "HUMAN") {
         return `<div style="text-align:center; color:#f87171;">
             <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"/></svg>
-            <div style="font-size:12px; font-weight:800; margin-top:2px;">목줄이 채인 애완 부캉이</div>
+            <div style="font-size:12px; font-weight:800; margin-top:2px;">사람들에게 붙잡혀버린 푸바오</div>
         </div>`;
     } else {
         return `<div style="text-align:center; color:#f87171;">
@@ -157,7 +157,7 @@ function showMenu(reason = "") {
     eventBanner.style.display = "none";
     
     let lb = getLB();
-    let lbHtml = `<div class="leaderboard"><b>🏆 TOP RANKINGS</b>`;
+    let lbHtml = `<div class="leaderboard"><b>🏆 TOP RANKINGS (늑구 찾기 기록)</b>`;
     if(lb.length === 0) lbHtml += `<p style="text-align:center; color:#64748b; margin:4px 0;">기록이 없습니다</p>`;
     else lb.slice(0, 5).forEach((item, i) => {
         lbHtml += `<div class="rank"><span>${i+1}. ${item.name}</span><span class="rankScore">${item.score}m</span></div>`;
@@ -166,12 +166,12 @@ function showMenu(reason = "") {
 
     if(state === "START") {
         panelBox.innerHTML = `
-            <h1>BUKANGI ESCAPE</h1>
-            <div class="sub-title">🦈 무한 북항 탈출 챌린지</div>
-            <p>마우스로 부캉이를 조종해 최대한 멀리 탈출하세요!<br>
-            250m마다 속도가 0.1씩 정확히 상승합니다. (목숨 단 1개)<br>
+            <h1>푸바오 & 부캉이의 늑구 찾기</h1>
+            <div class="sub-title">🐼 푸바오가 부캉이를 타고 늑구를 찾아 떠납니다! 🐺</div>
+            <p>마우스로 부캉이를 조종해 수로 장애물을 피하고 늑구를 찾아 헤엄치세요!<br>
+            250m마다 속도가 0.1씩 오릅니다. (목숨 단 1개)<br>
             <b>1500m 지점</b>부터는 구경꾼들이 뛰어듭니다!</p>
-            <button class="btn-start" onclick="startGame()">챌린지 시작</button>
+            <button class="btn-start" onclick="startGame()">탐험 시작하기</button>
             ${lbHtml}
         `;
     } else {
@@ -179,27 +179,27 @@ function showMenu(reason = "") {
         let endingDesc = "";
         
         if(reason === "WOOD") {
-            endingTitle = "BAD ENDING : 찔린 부캉이";
-            endingDesc = "부서진 나무 갑판에 치명상을 입고 쓸쓸히 가라앉은 부캉이...";
+            endingTitle = "BAD ENDING : 나무 충돌";
+            endingDesc = "부서진 나무 갑판에 부딪혀 늑구를 찾지 못하고 멈춰 선 푸바오와 부캉이...";
         } else if(reason === "NET") {
-            endingTitle = "BAD ENDING : 그물에 걸린 부캉이";
-            endingDesc = "유도 그물에 감겨 밀렵꾼에게 잡혀버린 부캉이...";
+            endingTitle = "BAD ENDING : 그물에 포획";
+            endingDesc = "불법 유도 그물에 갇혀 늑구의 흔적을 놓쳐버린 푸바오...";
         } else if(reason === "HUMAN") {
-            endingTitle = "BAD ENDING : 애완 부캉이";
-            endingDesc = "사람들에게 붙잡혀 졸지에 목줄이 채여 키워지게 된 부캉이...";
+            endingTitle = "BAD ENDING : 팬들에게 포위";
+            endingDesc = "갑자기 뛰어든 구경꾼 팬들에게 둘러싸여 늑구 찾기를 실패한 푸바오...";
         } else {
             endingTitle = "BAD ENDING : 수로 충돌";
-            endingDesc = "수로 벽이나 부표에 강력하게 충돌한 부캉이...";
+            endingDesc = "수로 벽에 강하게 충돌하여 기절해버린 부캉이와 푸바오...";
         }
 
         let finalDist = Math.floor(distance);
 
         panelBox.innerHTML = `
             <h1 style="color:#f87171;">${endingTitle}</h1>
-            <div class="sub-title" style="color:#f87171;">💥 최종 완주 거리 : ${finalDist}m</div>
+            <div class="sub-title" style="color:#f87171;">💥 늑구 찾기 탐색 거리 : ${finalDist}m</div>
             <div class="ending-art">${getEndingArtHtml(reason)}</div>
             <p>${endingDesc}</p>
-            <input id="pName" placeholder="이름 입력 (최대 10자)" maxlength="10">
+            <input id="pName" placeholder="탐험가 이름 입력 (최대 10자)" maxlength="10">
             <button class="btn-start" onclick="submitScore(${finalDist})">기록 등록하기</button>
             ${lbHtml}
         `;
@@ -222,7 +222,7 @@ function startGame() {
     menu.style.display = "none";
     distance = 0;
     currentSpeed = baseSpeed;
-    bukang.x = 600; bukang.y = 150; bukang.angle = Math.PI / 2;
+    rider.x = 600; rider.y = 150; rider.angle = Math.PI / 2;
     obstacles = []; fishes = []; humans = []; frame = 0;
     eventTriggered = false;
     deathReason = "";
@@ -233,26 +233,25 @@ function update() {
     if(state !== "PLAYING") return;
     frame++;
 
-    let dx = mousePos.x - bukang.x;
-    let dy = mousePos.y - bukang.y;
+    let dx = mousePos.x - rider.x;
+    let dy = mousePos.y - rider.y;
     let dist = Math.hypot(dx, dy);
 
     if(dist > 3) {
-        bukang.x += dx * 0.1;
-        bukang.y += dy * 0.1;
-        bukang.angle = Math.atan2(dy, dx);
+        rider.x += dx * 0.1;
+        rider.y += dy * 0.1;
+        rider.angle = Math.atan2(dy, dx);
     }
 
-    if(bukang.x - bukang.size < laneLeft || bukang.x + bukang.size > laneRight) {
+    if(rider.x - rider.size < laneLeft || rider.x + rider.size > laneRight) {
         deathReason = "WALL";
         state = "GAMEOVER";
         showMenu(deathReason);
         return;
     }
 
-    // 정확히 250m마다 속도가 0.1씩 오르도록 실시간 계산 반영
     currentSpeed = baseSpeed + (Math.floor(distance / 250) * 0.1);
-    distance += (currentSpeed * 0.22); // 거리 증가 계수 조정
+    distance += (currentSpeed * 0.22);
 
     distVal.textContent = Math.floor(distance);
     speedVal.textContent = ((currentSpeed - baseSpeed) / 0.1 + 1).toFixed(1);
@@ -283,8 +282,8 @@ function update() {
 
     obstacles.forEach((obs) => {
         obs.y += currentSpeed;
-        let d = Math.hypot(bukang.x - obs.x, bukang.y - obs.y);
-        if(d < bukang.size + obs.size) {
+        let d = Math.hypot(rider.x - obs.x, rider.y - obs.y);
+        if(d < rider.size + obs.size) {
             deathReason = obs.type;
             state = "GAMEOVER";
             showMenu(deathReason);
@@ -294,8 +293,8 @@ function update() {
     humans.forEach((h) => {
         h.y += currentSpeed * 0.9;
         h.x += (h.targetX - h.x) * 0.05;
-        let d = Math.hypot(bukang.x - h.x, bukang.y - h.y);
-        if(d < bukang.size + h.size) {
+        let d = Math.hypot(rider.x - h.x, rider.y - h.y);
+        if(d < rider.size + h.size) {
             deathReason = "HUMAN";
             state = "GAMEOVER";
             showMenu(deathReason);
@@ -380,39 +379,76 @@ function draw() {
         ctx.restore();
     });
 
+    // --- 부캉이를 탄 푸바오 드로잉 ---
     ctx.save();
-    ctx.translate(bukang.x, bukang.y);
-    ctx.rotate(bukang.angle);
+    ctx.translate(rider.x, rider.y);
+    ctx.rotate(rider.angle);
 
+    // 1. 하단 부캉이 (상어 바디)
     ctx.fillStyle = "#334155";
     ctx.beginPath();
-    ctx.ellipse(0, 0, bukang.size + 12, bukang.size - 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, rider.size + 12, rider.size - 8, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // 부캉이 등지느러미
     ctx.fillStyle = "#1e293b";
     ctx.beginPath();
-    ctx.moveTo(-5, -bukang.size + 6);
-    ctx.lineTo(-18, -bukang.size - 10);
-    ctx.lineTo(8, -bukang.size + 6);
+    ctx.moveTo(-5, -rider.size + 6);
+    ctx.lineTo(-18, -rider.size - 10);
+    ctx.lineTo(8, -rider.size + 6);
     ctx.fill();
 
+    // 부캉이 꼬리
     ctx.beginPath();
-    ctx.moveTo(-bukang.size - 5, 0);
-    ctx.lineTo(-bukang.size - 22, -16);
-    ctx.lineTo(-bukang.size - 16, 0);
-    ctx.lineTo(-bukang.size - 22, 16);
+    ctx.moveTo(-rider.size - 5, 0);
+    ctx.lineTo(-rider.size - 22, -16);
+    ctx.lineTo(-rider.size - 16, 0);
+    ctx.lineTo(-rider.size - 22, 16);
     ctx.fill();
 
+    // 부캉이 배
     ctx.fillStyle = "#f8fafc";
     ctx.beginPath();
-    ctx.ellipse(5, 4, bukang.size, bukang.size - 16, 0, 0, Math.PI);
+    ctx.ellipse(5, 4, rider.size, rider.size - 16, 0, 0, Math.PI);
     ctx.fill();
 
+    // 부캉이 눈
     ctx.fillStyle = "#0f172a";
     ctx.beginPath(); ctx.arc(18, -4, 3, 0, Math.PI * 2); ctx.fill();
 
-    ctx.restore();
+    // 2. 부캉이 등에 탄 푸바오 (판다 캐릭터)
+    ctx.save();
+    ctx.translate(-2, 0); // 상어 등 중앙 상단
 
+    // 판다 귀 (검은색)
+    ctx.fillStyle = "#090d16";
+    ctx.beginPath(); ctx.arc(-6, -16, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, -16, 4.5, 0, Math.PI * 2); ctx.fill();
+
+    // 판다 얼굴 (흰색)
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(0, -10, 11, 0, Math.PI * 2); ctx.fill();
+
+    // 판다 눈 무늬 (검은 패치)
+    ctx.fillStyle = "#090d16";
+    ctx.beginPath(); ctx.ellipse(-4, -10, 3.5, 2.5, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(4, -10, 3.5, 2.5, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+
+    // 판다 코 & 입
+    ctx.beginPath(); ctx.arc(0, -7, 1.8, 0, Math.PI * 2); ctx.fill();
+
+    // 판다 몸통 (흰색 & 검은 팔)
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#090d16";
+    ctx.beginPath(); ctx.arc(-7, 2, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(7, 2, 3.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.restore(); // 푸바오 개별 변형 끝
+
+    ctx.restore(); // 전체 유닛 변형 끝
+
+    // 마우스 조준점
     ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 10, 0, Math.PI * 2); ctx.stroke();
 }
