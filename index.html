@@ -95,7 +95,7 @@ const eventBanner = document.getElementById("eventBanner");
 
 let state = "START";
 let distance = 0;
-let baseSpeed = 12.0; // 시작 속도 폭발 상향 (6.5 -> 12.0)
+let baseSpeed = 50.0; // 시작 속도 폭발 상향 (6.5 -> 12.0)
 let currentSpeed = 12.0;
 let mousePos = { x: 600, y: 150 };
 
@@ -169,7 +169,6 @@ function showMenu(reason = "") {
             <h1>푸바오 & 부캉이의 늑구 찾기</h1>
             <div class="sub-title">🐼 푸바오가 부캉이를 타고 늑구를 찾아 떠납니다! 🐺</div>
             <p>마우스로 부캉이를 조종해 수로 장애물을 피하고 늑구를 찾아 헤엄치세요!<br>
-            <b>🔥 하드코어 초고속 모드 적용!</b> 250m마다 +0.5x 폭발 가속!<br>
             <b>1500m 지점</b>부터는 구경꾼들이 뛰어듭니다!</p>
             <button class="btn-start" onclick="startGame()">초고속 탐험 시작하기</button>
             ${lbHtml}
@@ -251,7 +250,7 @@ function update() {
     }
 
     // 250m마다 속도가 +0.5씩 폭발적 가속!
-    currentSpeed = baseSpeed + (Math.floor(distance / 250) * 0.5);
+    currentSpeed = baseSpeed + (Math.floor(distance / 250) * 1);
     distance += (currentSpeed * 0.35);
 
     distVal.textContent = Math.floor(distance);
