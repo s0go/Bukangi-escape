@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bukangi & Fubao Escape</title>
+<title>Bukangi Escape</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 body {
@@ -95,8 +95,8 @@ const eventBanner = document.getElementById("eventBanner");
 
 let state = "START";
 let distance = 0;
-let baseSpeed = 4.0;
-let currentSpeed = 4.0;
+let baseSpeed = 6.5; // 시작 속도 대폭 상향 (4.0 -> 6.5)
+let currentSpeed = 6.5;
 let mousePos = { x: 600, y: 150 };
 
 let rider = {
@@ -169,7 +169,7 @@ function showMenu(reason = "") {
             <h1>푸바오 & 부캉이의 늑구 찾기</h1>
             <div class="sub-title">🐼 푸바오가 부캉이를 타고 늑구를 찾아 떠납니다! 🐺</div>
             <p>마우스로 부캉이를 조종해 수로 장애물을 피하고 늑구를 찾아 헤엄치세요!<br>
-            250m마다 속도가 0.1씩 오릅니다. (목숨 단 1개)<br>
+            250m마다 속도가 빠르게 상승합니다! (목숨 단 1개)<br>
             <b>1500m 지점</b>부터는 구경꾼들이 뛰어듭니다!</p>
             <button class="btn-start" onclick="startGame()">탐험 시작하기</button>
             ${lbHtml}
@@ -238,8 +238,8 @@ function update() {
     let dist = Math.hypot(dx, dy);
 
     if(dist > 3) {
-        rider.x += dx * 0.1;
-        rider.y += dy * 0.1;
+        rider.x += dx * 0.15; // 민첩한 마우스 추종
+        rider.y += dy * 0.15;
         rider.angle = Math.atan2(dy, dx);
     }
 
@@ -250,11 +250,12 @@ function update() {
         return;
     }
 
-    currentSpeed = baseSpeed + (Math.floor(distance / 250) * 0.1);
-    distance += (currentSpeed * 0.22);
+    // 250m마다 속도가 +0.2씩 빠르게 오르도록 조정
+    currentSpeed = baseSpeed + (Math.floor(distance / 250) * 0.2);
+    distance += (currentSpeed * 0.28);
 
     distVal.textContent = Math.floor(distance);
-    speedVal.textContent = ((currentSpeed - baseSpeed) / 0.1 + 1).toFixed(1);
+    speedVal.textContent = ((currentSpeed - baseSpeed) / 0.2 * 0.1 + 1.0).toFixed(1);
 
     if(distance >= 1500 && !eventTriggered) {
         eventTriggered = true;
@@ -262,7 +263,7 @@ function update() {
         setTimeout(() => { eventBanner.style.display = "none"; }, 3000);
     }
 
-    let spawnRate = Math.max(22, Math.floor(50 - (currentSpeed * 2)));
+    let spawnRate = Math.max(16, Math.floor(40 - (currentSpeed * 1.8)));
     if(frame % spawnRate === 0) {
         let types = ["WOOD", "NET", "BUOY"];
         let type = types[Math.floor(Math.random() * types.length)];
@@ -270,12 +271,12 @@ function update() {
         obstacles.push({ x: obsX, y: -60, type: type, size: type === "WOOD" ? 42 : 30, rot: Math.random() * Math.PI });
     }
 
-    if(distance >= 1500 && frame % 30 === 0) {
+    if(distance >= 1500 && frame % 24 === 0) {
         let spawnX = Math.random() < 0.5 ? laneLeft : laneRight;
         humans.push({ x: spawnX, y: Math.random() * 450 + 100, targetX: spawnX === laneLeft ? laneLeft + 250 : laneRight - 250, size: 24 });
     }
 
-    if(frame % 90 === 0) {
+    if(frame % 80 === 0) {
         let fishX = Math.random() * (laneRight - laneLeft - 100) + laneLeft + 50;
         fishes.push({ x: fishX, y: -50, size: 14 });
     }
@@ -292,7 +293,7 @@ function update() {
 
     humans.forEach((h) => {
         h.y += currentSpeed * 0.9;
-        h.x += (h.targetX - h.x) * 0.05;
+        h.x += (h.targetX - h.x) * 0.06;
         let d = Math.hypot(rider.x - h.x, rider.y - h.y);
         if(d < rider.size + h.size) {
             deathReason = "HUMAN";
@@ -418,37 +419,30 @@ function draw() {
 
     // 2. 부캉이 등에 탄 푸바오 (판다 캐릭터)
     ctx.save();
-    ctx.translate(-2, 0); // 상어 등 중앙 상단
+    ctx.translate(-2, 0);
 
-    // 판다 귀 (검은색)
     ctx.fillStyle = "#090d16";
     ctx.beginPath(); ctx.arc(-6, -16, 4.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(6, -16, 4.5, 0, Math.PI * 2); ctx.fill();
 
-    // 판다 얼굴 (흰색)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath(); ctx.arc(0, -10, 11, 0, Math.PI * 2); ctx.fill();
 
-    // 판다 눈 무늬 (검은 패치)
     ctx.fillStyle = "#090d16";
     ctx.beginPath(); ctx.ellipse(-4, -10, 3.5, 2.5, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(4, -10, 3.5, 2.5, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
 
-    // 판다 코 & 입
     ctx.beginPath(); ctx.arc(0, -7, 1.8, 0, Math.PI * 2); ctx.fill();
 
-    // 판다 몸통 (흰색 & 검은 팔)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#090d16";
     ctx.beginPath(); ctx.arc(-7, 2, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(7, 2, 3.5, 0, Math.PI * 2); ctx.fill();
 
-    ctx.restore(); // 푸바오 개별 변형 끝
+    ctx.restore();
+    ctx.restore();
 
-    ctx.restore(); // 전체 유닛 변형 끝
-
-    // 마우스 조준점
     ctx.strokeStyle = "rgba(56, 189, 248, 0.8)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 10, 0, Math.PI * 2); ctx.stroke();
 }
